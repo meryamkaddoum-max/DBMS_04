@@ -47,6 +47,7 @@ git --version
 > successful version checks and insert it here.
 >
 > `[insert screenshot]`
+<img width="780" height="319" alt="Screenshot 2026-05-13 at 11 36 04 am" src="https://github.com/user-attachments/assets/5b00b79c-79c5-4dae-abf7-d6a3ff6250b0" />
 
 ---
 
@@ -100,6 +101,16 @@ Read the table carefully and describe one concrete example of each:
 
 > *Your answers:*
 
+> Update anomaly:
+Wenn Huber seinen Stundenlohn auf 70.00 erhöht, müssen alle Zeilen geändert werden, in denen Huber, Tom bzw. M03 vorkommt. Das betrifft die Zeilen von Auftrag 1001 und 1003.
+> 
+>Insert anomaly:
+>Nein. Ein neuer Mechaniker kann nicht gespeichert werden, ohne gleichzeitig einen Auftrag und ein Work Item einzutragen, da Informationen wie OrderNo und ItemNo fehlen.
+> 
+>Delete anomaly:
+Wenn Auftrag 1002 gelöscht wird, gehen auch alle Informationen über die Kundin Novak, Jana, ihr Fahrzeug HER-XY 44 sowie die Reparaturdaten verloren.
+
+
 ### Task 1b – Write Down Functional Dependencies
 
 List all non-trivial functional dependencies you can identify in the flat table.
@@ -113,6 +124,16 @@ Hints:
 
 > *Your FD list:*
 
+> CustNo → CustName, CustCity
+
+>Plate → Make, Model, Year, CustNo
+
+>MechId → MechName, HourlyRate
+
+>OrderNo → Date, Plate, CustNo
+
+>(OrderNo, ItemNo) → MechId, Description, Hours
+
 ### Questions for Task 1
 
 **Question 1.1:** Is `CustNo → CustCity` a *full* or *partial* dependency with
@@ -120,16 +141,19 @@ respect to the primary key `(OrderNo, ItemNo)`? Justify your answer using the
 definition from Lecture 04.
 
 > *Your answer:*
+> CustNo → CustCity ist eine partielle Abhängigkeit bezüglich des Primärschlüssels (OrderNo, ItemNo), weil CustCity nicht vom gesamten zusammengesetzten Schlüssel abhängt, sondern nur indirekt über CustNo.
 
 **Question 1.2:** Identify a transitive dependency in the flat table and explain
 why it violates 3NF.
 
 > *Your answer:*
+> Eine transitive Abhängigkeit ist OrderNo -> CustNo und CustNo ->CustCity. Dadurch hängt CustCity transitiv von OrderNo ab. Das verletzt die 3NF, weil ein Nicht-Schlüsselattribut von einem anderen Nicht-Schlüsselattribut abhängt.
 
 **Question 1.3:** Compute the attribute closure $\{\mathrm{OrderNo}\}^+$ using
 your FD list. Is `OrderNo` alone a superkey of the flat table?
 
 > *Your answer:*
+> Die Attributshülle von OrderNo⁺ enthält Date, Plate, CustNo, CustName, CustCity, Make, Model und Year. OrderNo allein ist jedoch kein Superkey der flachen Tabelle, da Attribute wie ItemNo, MechId, Description und Hours nicht eindeutig bestimmt werden können.
 
 ---
 
@@ -155,6 +179,7 @@ Check: In every relation, does each non-key attribute depend on the **complete**
 primary key?
 
 > *Your check:*
+> Ja. Nach der Zerlegung hängt in jeder Relation jedes Nicht-Schlüsselattribut vom vollständigen Primärschlüssel ab. Partielle Abhängigkeiten wurden entfernt, daher befindet sich das Schema in der 2NF.
 
 ### Task 2b – Decompose into 3NF
 
@@ -171,6 +196,8 @@ If not, perform the missing decomposition.
 
 > *Your analysis and any further decomposition:*
 
+>Nach der Zerlegung in 2NF befinden sich alle fünf Relationen bereits in der 3NF. In order wurde die transitive Abhängigkeit entfernt, da cust_name und cust_city jetzt in customer gespeichert werden. In vehicle hängen make, model, year und cust_no direkt von plate ab, daher liegt keine transitive Abhängigkeit vor. Eine weitere Zerlegung ist nicht notwendig.
+
 ### Task 2c – Verify Losslessness
 
 Pick one of the decompositions you performed (e.g. the split of the original
@@ -182,6 +209,7 @@ Name the shared attributes, state the FD you rely on, and conclude whether the
 decomposition is lossless.
 
 > *Your verification:*
+> Bei der Zerlegung in order(order_no, date, plate, cust_no) und vehicle(plate, make, model, year, cust_no) ist das gemeinsame Attribut plate. Es gilt die funktionale Abhängigkeit plate → make, model, year, cust_no. Damit bestimmt das gemeinsame Attribut alle fahrzeugbezogenen Attribute eindeutig. Nach dem Heath-Kriterium ist die Zerlegung daher lossless.
 
 ### Questions for Task 2
 
@@ -191,12 +219,16 @@ Describe a realistic scenario where the direct link `order → customer` is
 necessary.
 
 > *Your answer:*
+> 
+> cust_no bleibt als Fremdschlüssel in order, damit ein Auftrag direkt einem Kunden zugeordnet werden kann. Das ist z. B. wichtig, wenn ein Fahrzeug verkauft wird, aber alte Aufträge weiterhin dem ursprünglichen Kunden zugeordnet bleiben sollen.
 
 **Question 2.2:** Is the schema after the 3NF decomposition also in BCNF?
 Justify your answer using the definition: for every non-trivial FD $X \rightarrow Y$,
 $X$ must be a superkey.
 
 > *Your answer:*
+>
+> Ja. Das Schema befindet sich auch in BCNF, weil bei allen nicht-trivialen funktionalen Abhängigkeiten die linke Seite jeweils ein Superkey der entsprechenden Relation ist.
 
 **Question 2.3:** The hourly rate of a mechanic is stored in `mechanic`. If a
 mechanic changes their rate during the year, what problem arises for already
@@ -204,6 +236,8 @@ completed orders? How could the schema be extended to correctly record
 historical hourly rates?
 
 > *Your answer:*
+>
+> Wenn sich der Stundenlohn eines Mechanikers ändert, würden alte Aufträge nachträglich falsche Kosten anzeigen. Das Schema könnte erweitert werden, indem der verwendete Stundenlohn zusätzlich direkt in work_item gespeichert oder eine separate Tabelle für historische Stundenlöhne mit Gültigkeitszeitraum eingeführt wird.
 
 ---
 
@@ -312,6 +346,7 @@ scp <username>@<server>:/path/to/DBMS_04/schema.svg ~/Downloads/schema.svg
 > five entities and their relationships.
 >
 > `[insert screenshot]`
+<img width="819" height="746" alt="Screenshot 2026-05-13 at 12 35 53 pm" src="https://github.com/user-attachments/assets/8b45ae98-d789-4bef-9116-62bdc883e340" />
 
 ### Task 3c – Commit
 
@@ -413,6 +448,7 @@ sqlite3 workshop.db ".tables"
 > **Screenshot 3:** Take a screenshot showing the `.tables` output.
 >
 > `[insert screenshot]`
+<img width="602" height="78" alt="Screenshot 2026-05-13 at 12 50 59 pm" src="https://github.com/user-attachments/assets/538c4056-954c-432d-866f-6b88e9f7b559" />
 
 ### Task 4c – Insert Sample Data
 
@@ -489,6 +525,8 @@ Justify both choices in terms of the domain — what does it mean for the
 business if an order is deleted versus if a customer is deleted?
 
 > *Your answer:*
+>
+>ON DELETE CASCADE bei work_item.order_no bedeutet, dass beim Löschen eines Auftrags auch alle zugehörigen Work Items automatisch gelöscht werden. ON DELETE RESTRICT bei vehicle.cust_no verhindert dagegen das Löschen eines Kunden, solange ihm noch Fahrzeuge zugeordnet sind, damit keine wichtigen Daten verloren gehen.
 
 **Question 4.2:** Test referential integrity by running:
 
@@ -501,6 +539,8 @@ What error do you get? What does this tell you about the difference between
 a constraint declared in DDL and one that is actually enforced at runtime?
 
 > *Your answer:*
+>
+> Es erscheint der Fehler FOREIGN KEY constraint failed, weil der Auftrag 9999 nicht existiert. Das zeigt, dass Foreign-Key-Constraints zur Laufzeit überprüft und ungültige Referenzen verhindert werden.
 
 **Question 4.3:** Test the CHECK constraint:
 
@@ -511,6 +551,8 @@ INSERT INTO work_item VALUES (1001, 3, 3, 'Invalid', -0.5);
 What happens? What would happen if the CHECK constraint were missing?
 
 > *Your answer:*
+>
+> Die Einfügung wird abgelehnt, weil hours = -0.5 gegen die CHECK-Bedingung hours > 0 verstößt. Ohne die CHECK-Constraint könnten ungültige negative Arbeitsstunden gespeichert werden.
 
 ---
 
@@ -529,6 +571,16 @@ then the SQL query.
 
 ```sql
 -- Query 5a: insert here
+o.date,
+    v.plate,
+    w.description,
+    w.hours
+FROM customer c
+JOIN "order" o ON c.cust_no = o.cust_no
+JOIN vehicle v ON o.plate = v.plate
+JOIN work_item w ON o.order_no = w.order_no
+WHERE c.cust_name = 'Berger, Franz'
+ORDER BY o.date, w.item_no;
 ```
 
 <details>
@@ -544,6 +596,8 @@ order 1003 (BMW 320i, 2026-03-12).
 and why does the join order not affect the *result*, but does affect *performance*?
 
 > *Your answer:*
+>
+> Der Query-Optimizer würde idealerweise zuerst die gefilterten Kundendaten auswählen und danach die übrigen Tabellen joinen, um die Anzahl der Datensätze früh zu reduzieren. Die Join-Reihenfolge verändert das Ergebnis nicht, weil Joins logisch äquivalent sind, beeinflusst aber die Performance durch unterschiedliche Zwischenmengen und Suchkosten.
 
 ---
 
@@ -556,6 +610,16 @@ least one work item). Sort descending by `total_hours`.
 
 ```sql
 -- Query 5b: insert here
+SELECT
+    m.mech_name,
+    ROUND(SUM(w.hours), 1) AS total_hours,
+    COUNT(DISTINCT w.order_no) AS orders
+FROM work_item w
+JOIN mechanic m ON w.mech_id = m.mech_id
+JOIN "order" o ON w.order_no = o.order_no
+WHERE o.date BETWEEN '2026-03-01' AND '2026-03-31'
+GROUP BY m.mech_name
+ORDER BY total_hours DESC;
 ```
 
 <details>
@@ -573,6 +637,8 @@ What would `COUNT(*)` count instead, and why would the result differ in this
 case?
 
 > *Your answer:*
+>
+> COUNT(*) würde alle Work Items zählen statt nur die unterschiedlichen Aufträge. Das Ergebnis wäre anders, weil ein Mechaniker mehrere Work Items innerhalb desselben Auftrags haben kann.
 
 ---
 
@@ -587,9 +653,24 @@ Use a set-difference approach with `EXCEPT` and also write an alternative using
 ```sql
 -- Variant 1: EXCEPT
 -- Query 5c-1: insert here
+SELECT plate, model
+FROM vehicle
+
+EXCEPT
+
+SELECT v.plate, v.model
+FROM vehicle v
+JOIN "order" o ON v.plate = o.plate;
 
 -- Variant 2: NOT EXISTS
 -- Query 5c-2: insert here
+SELECT plate, model
+FROM vehicle v
+WHERE NOT EXISTS (
+    SELECT *
+    FROM "order" o
+    WHERE o.plate = v.plate
+);
 ```
 
 <details>
@@ -631,6 +712,8 @@ The original flat table had 5 rows and 15 columns. The normalized schema has
 at 50,000? Justify with concrete reference to the anomalies from Task 1a.
 
 > *Your answer:*
+>
+> Normalisierung lohnt sich besonders bei großen Datenmengen wie 50 000 Zeilen, weil Redundanzen und Anomalien deutlich häufiger auftreten. Änderungen, Einfügungen und Löschungen können dadurch konsistent und effizient durchgeführt werden.
 
 **Question B – 3NF vs. BCNF:**  
 Lecture 04 explains that BCNF is not always dependency-preserving. Is this
@@ -638,6 +721,8 @@ relevant for the workshop schema? Would a BCNF decomposition have looked
 different from the 3NF decomposition here?
 
 > *Your answer:*
+>
+> Der Unterschied ist hier nicht relevant, weil alle funktionalen Abhängigkeiten bereits von Superschlüsseln ausgehen. Das Schema ist daher sowohl in 3NF als auch in BCNF. Eine BCNF-Zerlegung würde hier nicht anders aussehen.
 
 **Question C – Redundant foreign key in `order`:**  
 `order` contains both `plate` (FK → `vehicle`) and `cust_no` (FK → `customer`).
@@ -646,6 +731,9 @@ in `order` is redundant and violates 3NF. Is that correct? When would such
 a deliberate denormalization be justified?
 
 > *Your answer:*
+>
+> cust_no in order ist zwar redundant, aber fachlich sinnvoll. So bleiben alte Aufträge dem ursprünglichen Kunden zugeordnet, auch wenn das Fahrzeug später verkauft wird.
+
 
 **Question D – NULL and order status:**  
 An order that has just been created may have no work items yet. What does the
@@ -654,11 +742,14 @@ correctly represent an order's status (open / completed)? Sketch the necessary
 change.
 
 > *Your answer:*
+>
+> Das aktuelle Schema erlaubt Aufträge ohne Work Items. Für den Bearbeitungsstatus könnte man die Tabelle order um ein Attribut wie status erweitern, z. B. mit den Werten 'open', 'in_progress' und 'completed'
 
 > **Screenshot 4:** Take a screenshot showing the output of Query 5b directly
 > in `sqlite3` (with `.headers on` and `.mode column` activated).
 >
 > `[insert screenshot]`
+<img width="715" height="404" alt="Screenshot 2026-05-13 at 1 37 05 pm" src="https://github.com/user-attachments/assets/9140f924-efeb-4a94-9dce-ffd430f46342" />
 
 ---
 
