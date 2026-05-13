@@ -692,6 +692,8 @@ always produce the same result. Are there situations where one approach should
 be preferred in practice? Consider readability and extensibility.
 
 > *Your answer:*
+>
+> EXCEPT und NOT EXISTS sind logisch äquivalent, sie liefern also dasselbe Ergebnis. In der Praxis wird NOT EXISTS jedoch oft bevorzugt, weil die Abfrage leichter erweitert werden kann,z.b mit zusätzlichen Bedingungen innerhalb der Unterabfrage. Außerdem ist NOT EXISTS bei korrelierten Abfragen häufig besser lesbar. EXCEPT eignet sich dagegen gut für klare Mengenoperationen und kann bei einfachen Differenzabfragen sehr kompakt wirken.
 
 ---
 
